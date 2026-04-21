@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import React, { memo, useCallback, useRef } from 'react';
+import React, { memo, RefObject, useCallback, useRef } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 
 import { useAuth } from '@/context/AuthContext';
@@ -10,45 +10,9 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedTextInput } from '@/components/themed-text-input';
 import { ThemedView } from '@/components/themed-view';
 import ValidateInput from '@/components/validate-input';
+import { useSignupStore } from '@/store/useSignupStore';
 import { showAlert } from '@/utils/alert';
 import { validateEmail } from '@/utils/validate-utils';
-import { create } from 'zustand';
-
-interface SignupState {
-    form: {
-        name: '';
-        email: '';
-        password: '';
-        confirmPassword: '';
-    };
-    loading: boolean;
-    setField: (field: string, value: string) => void;
-    resetForm: () => void;
-    isValid: () => boolean;
-}
-
-export const useSignupStore = create<SignupState>((set, get) => ({
-    form: { name: '', email: '', password: '', confirmPassword: '' },
-    loading: false,
-
-    setField: (field, value) =>
-        set((state) => ({
-            form: { ...state.form, [field]: value }
-        })),
-
-    resetForm: () =>
-        set({ form: { name: '', email: '', password: '', confirmPassword: '' } }),
-
-    isValid: () => {
-        const { name, email, password, confirmPassword } = get().form;
-        return (
-            name.length > 0 &&
-            validateEmail(email) &&
-            password.length >= 6 &&
-            password === confirmPassword
-        );
-    },
-}));
 
 export default function SignupScreen() {
     const router = useRouter();
@@ -81,15 +45,14 @@ export default function SignupScreen() {
     const checkPassword = useCallback(() => {
         const { form } = useSignupStore.getState();
         if (form.password !== form.confirmPassword) {
-            return 'Passwords do not match.';
+            return 'Passwords do not match with confirm password.';
         }
     }, []);
 
     const checkEmail = useCallback(() => {
         const { form } = useSignupStore.getState();
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(form.email)) {
-            return 'Invalid email format';
+        if (!validateEmail(form.email)) {
+            return 'Invalid email format'
         }
     }, []);
 
@@ -118,6 +81,7 @@ export default function SignupScreen() {
                 errorsRef={errorsRef}
                 secureTextEntry
                 minLength={6}
+                validate={checkPassword}
             />
 
             <ControlledField
@@ -144,7 +108,7 @@ type SignupFormKey = keyof ReturnType<typeof useSignupStore.getState>['form'];
 interface ControlledFieldProps {
     formKey: SignupFormKey;
     label: string;
-    errorsRef: any;
+    errorsRef: RefObject<any>;
     validate?: (value: string) => string | undefined;
     isRequired?: boolean;
     minLength?: number;
