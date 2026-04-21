@@ -52,6 +52,7 @@ export default function LoginScreen() {
             >
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss} disabled={Platform.OS === 'web'}>
                     <ThemedView style={styles.container}>
+
                         <ThemedText type='title' style={styles.title}>Welcome Back</ThemedText>
 
                         <FormGroup>

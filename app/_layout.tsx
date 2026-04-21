@@ -7,7 +7,9 @@ import GlobalModal from '@/components/alert-modal';
 import LoadingPleaseWait from '@/components/loading-please-wait';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useCallback, useEffect } from 'react';
+import { Appearance, TouchableOpacity } from 'react-native';
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
@@ -32,6 +34,10 @@ function RootLayoutNav() {
     }
   }, [user, segments, isLoading]);
 
+  const handleSwitchTheme = useCallback(() => {
+    Appearance.setColorScheme(colorScheme === 'dark' ? 'light' : 'dark');
+  }, [colorScheme])
+
   if (isLoading) {
     return <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <LoadingPleaseWait />
@@ -41,7 +47,18 @@ function RootLayoutNav() {
   return <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)/login" options={{
+        title: '',
+        headerRight: () => (
+          <TouchableOpacity onPress={handleSwitchTheme} style={{ marginRight: 15 }}>
+            <Ionicons
+              name={colorScheme === 'light' ? "moon" : "sunny"}
+              size={24}
+              color={colorScheme === 'light' ? "black" : "white"}
+            />
+          </TouchableOpacity>
+        ),
+      }} />
       <Stack.Screen name="(auth)/signup" options={{ headerShown: false }} />
       <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
     </Stack>

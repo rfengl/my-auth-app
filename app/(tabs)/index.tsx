@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { StyleSheet, View } from 'react-native';
+import { Appearance, StyleSheet, useColorScheme, View } from 'react-native';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
@@ -19,6 +19,11 @@ export default function HomeScreen() {
     // In a real app, you'd fetch() from an API here
     logout()
   }, []);
+
+  const colorScheme = useColorScheme();
+  const handleSwitchTheme = useCallback(() => {
+    Appearance.setColorScheme(colorScheme === 'dark' ? 'light' : 'dark');
+  }, [colorScheme])
 
   return (
     <ParallaxScrollView
@@ -40,6 +45,7 @@ export default function HomeScreen() {
         </ThemedText>
       </ThemedView>
 
+      <ThemedButton type="primary" onPress={handleSwitchTheme}>Switch Theme</ThemedButton>
       <ThemedButton type="danger" onPress={handleLogout}>Logout</ThemedButton>
 
       <ThemedView style={styles.contentSection}>
