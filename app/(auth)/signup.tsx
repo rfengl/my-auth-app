@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 
 import FormGroup from '@/components/form-group';
 import KeyboardDismiss from '@/components/keyboard-dismiss';
+import PasswordInput from '@/components/password-input';
 import ThemedButton from '@/components/themed-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedTextInput } from '@/components/themed-text-input';
@@ -129,6 +130,7 @@ const ControlledField = memo(({
     validate,
     isRequired = true,
     minLength,
+    secureTextEntry,
     ...inputProps
 }: ControlledFieldProps) => {
     const value = useSignupStore((state) => state.form[formKey]);
@@ -136,12 +138,19 @@ const ControlledField = memo(({
 
     return (
         <FormGroup>
-            <ThemedTextInput
-                placeholder={label}
-                value={value}
-                onChangeText={(val) => setField(formKey, val)}
-                {...inputProps}
-            />
+            {secureTextEntry
+                ? <PasswordInput
+                    placeholder={label}
+                    value={value}
+                    onChangeText={(val) => setField(formKey, val)}
+                    {...inputProps}
+                />
+                : <ThemedTextInput
+                    placeholder={label}
+                    value={value}
+                    onChangeText={(val) => setField(formKey, val)}
+                    {...inputProps}
+                />}
             <ValidateInput
                 errorsRef={errorsRef}
                 name={label}
