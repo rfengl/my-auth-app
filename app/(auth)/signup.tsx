@@ -2,10 +2,8 @@ import { useRouter } from 'expo-router';
 import React, { memo, useCallback, useRef } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 
-// Store & Context
 import { useAuth } from '@/context/AuthContext';
 
-// Components
 import FormGroup from '@/components/form-group';
 import ThemedButton from '@/components/themed-button';
 import { ThemedText } from '@/components/themed-text';
@@ -15,7 +13,6 @@ import ValidateInput from '@/components/validate-input';
 import { showAlert } from '@/utils/alert';
 import { validateEmail } from '@/utils/validate-utils';
 import { create } from 'zustand';
-
 
 interface SignupState {
     form: {
@@ -57,8 +54,6 @@ export default function SignupScreen() {
     const router = useRouter();
     const { signup } = useAuth();
 
-    // We grab the actions (functions), but NOT the form data here.
-    // This keeps the Parent SignupScreen from re-rendering on every keystroke!
     const isValid = useSignupStore((state) => state.isValid);
     const loading = useSignupStore((state) => state.loading);
     const resetForm = useSignupStore((state) => state.resetForm);
@@ -83,7 +78,6 @@ export default function SignupScreen() {
         });
     }, [signup, isValid, router, resetForm]);
 
-    // Validation callbacks (Memoized to prevent prop-drilling re-renders)
     const checkPassword = useCallback(() => {
         const { form } = useSignupStore.getState();
         if (form.password !== form.confirmPassword) {
@@ -159,6 +153,8 @@ interface ControlledFieldProps {
     keyboardType?: 'default' | 'email-address' | 'numeric';
 }
 
+// We reuse ControlledField to keep things efficient. No need to re-render the whole screen for every single input changed. 
+// This one solves the performance 'overload' especially when you have many fields.
 const ControlledField = memo(({
     formKey,
     label,
@@ -168,9 +164,6 @@ const ControlledField = memo(({
     minLength,
     ...inputProps
 }: ControlledFieldProps) => {
-
-    // SELECTOR: This is the magic part. 
-    // It only re-renders this specific field when its own key in Zustand changes.
     const value = useSignupStore((state) => state.form[formKey]);
     const setField = useSignupStore((state) => state.setField);
 
