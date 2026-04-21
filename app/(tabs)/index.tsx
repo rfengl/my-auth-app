@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { Appearance, StyleSheet, useColorScheme, View } from 'react-native';
+import { Appearance, Platform, StyleSheet, useColorScheme, View } from 'react-native';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
@@ -7,6 +7,7 @@ import ThemedButton from '@/components/themed-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/context/AuthContext';
+import { showAlert } from '@/utils/alert';
 import { useCallback } from 'react';
 
 export default function HomeScreen() {
@@ -22,7 +23,11 @@ export default function HomeScreen() {
 
   const colorScheme = useColorScheme();
   const handleSwitchTheme = useCallback(() => {
-    Appearance.setColorScheme(colorScheme === 'dark' ? 'light' : 'dark');
+    if (Platform.OS === 'web') {
+      showAlert('Switch theme is not available in web, please try it in expo go')
+    } else {
+      Appearance.setColorScheme(colorScheme === 'dark' ? 'light' : 'dark');
+    }
   }, [colorScheme])
 
   return (

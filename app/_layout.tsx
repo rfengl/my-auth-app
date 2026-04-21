@@ -7,9 +7,10 @@ import GlobalModal from '@/components/alert-modal';
 import LoadingPleaseWait from '@/components/loading-please-wait';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { showAlert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect } from 'react';
-import { Appearance, TouchableOpacity } from 'react-native';
+import { Appearance, Platform, TouchableOpacity } from 'react-native';
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
@@ -35,7 +36,11 @@ function RootLayoutNav() {
   }, [user, segments, isLoading]);
 
   const handleSwitchTheme = useCallback(() => {
-    Appearance.setColorScheme(colorScheme === 'dark' ? 'light' : 'dark');
+    if (Platform.OS === 'web') {
+      showAlert('Switch theme is not available in web, please try it in expo go')
+    } else {
+      Appearance.setColorScheme(colorScheme === 'dark' ? 'light' : 'dark');
+    }
   }, [colorScheme])
 
   if (isLoading) {

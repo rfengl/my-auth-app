@@ -1,16 +1,21 @@
+import { useRouter } from 'expo-router';
+import React, { memo, useCallback, useRef } from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+
+// Store & Context
+import { useAuth } from '@/context/AuthContext';
+
+// Components
 import FormGroup from '@/components/form-group';
-import PasswordInput from '@/components/password-input';
 import ThemedButton from '@/components/themed-button';
+import { ThemedText } from '@/components/themed-text';
 import { ThemedTextInput } from '@/components/themed-text-input';
 import { ThemedView } from '@/components/themed-view';
 import ValidateInput from '@/components/validate-input';
-import { useAuth } from '@/context/AuthContext';
 import { showAlert } from '@/utils/alert';
 import { validateEmail } from '@/utils/validate-utils';
-import { useRouter } from 'expo-router';
-import { useCallback, useRef } from 'react';
-import { StyleSheet } from 'react-native';
 import { create } from 'zustand';
+
 
 interface SignupState {
     form: {
@@ -52,8 +57,11 @@ export default function SignupScreen() {
     const router = useRouter();
     const { signup } = useAuth();
 
-    // Connect to Zustand
-    const { form, setField, isValid, loading } = useSignupStore();
+    // We grab the actions (functions), but NOT the form data here.
+    // This keeps the Parent SignupScreen from re-rendering on every keystroke!
+    const isValid = useSignupStore((state) => state.isValid);
+    const loading = useSignupStore((state) => state.loading);
+    const resetForm = useSignupStore((state) => state.resetForm);
     const errorsRef = useRef<Record<string, string>>({});
 
     const handleSignup = useCallback(() => {
@@ -62,80 +70,132 @@ export default function SignupScreen() {
             return;
         }
 
-        const { form } = useSignupStore.getState()
-        signup(form, (error) => {
+        // Get snapshot of state only at the moment of submission
+        const currentForm = useSignupStore.getState().form;
+
+        signup(currentForm, (error) => {
             if (error) {
                 showAlert(error);
             } else {
+                resetForm();
                 router.replace('/(auth)/login');
             }
         });
-    }, [signup, isValid]);
+    }, [signup, isValid, router, resetForm]);
 
+    // Validation callbacks (Memoized to prevent prop-drilling re-renders)
     const checkPassword = useCallback(() => {
-        const { form } = useSignupStore.getState()
-        if ((form.password || '') !== (form.confirmPassword || '')) {
-            return 'Password confirmation does not match.'
+        const { form } = useSignupStore.getState();
+        if (form.password !== form.confirmPassword) {
+            return 'Passwords do not match.';
         }
-    }, [])
+    }, []);
 
     const checkEmail = useCallback(() => {
-        const { form } = useSignupStore.getState()
-        if (!validateEmail(form.email)) {
-            return 'Invalid email format'
+        const { form } = useSignupStore.getState();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(form.email)) {
+            return 'Invalid email format';
         }
-    }, [])
+    }, []);
 
     return (
         <ThemedView style={styles.container}>
-            <FormGroup>
-                <ThemedTextInput
-                    placeholder="Full Name"
-                    value={form.name}
-                    onChangeText={(val) => setField('name', val)}
-                />
-                <ValidateInput errorsRef={errorsRef} name="Full Name" value={form.name} isRequired />
-            </FormGroup>
+            <ThemedText type='title' style={styles.title}>Create Account</ThemedText>
 
-            <FormGroup>
-                <ThemedTextInput
-                    placeholder="Email"
-                    value={form.email}
-                    onChangeText={(val) => setField('email', val)}
-                    autoCapitalize="none"
-                />
-                <ValidateInput errorsRef={errorsRef} name="Email" value={form.email} isRequired validate={checkEmail} />
-            </FormGroup>
+            <ControlledField
+                formKey="name"
+                label="Full Name"
+                errorsRef={errorsRef}
+            />
 
-            <FormGroup>
-                <PasswordInput
-                    placeholder="Password"
-                    value={form.password}
-                    onChangeText={(val) => setField('password', val)}
-                    secureTextEntry
-                />
-                <ValidateInput errorsRef={errorsRef} name="Password" value={form.password} isRequired minLength={6} />
-            </FormGroup>
-            <FormGroup>
-                <PasswordInput
-                    placeholder="Confirm Password"
-                    value={form.confirmPassword}
-                    onChangeText={(val) => setField('confirmPassword', val)}
-                    secureTextEntry
-                />
-                <ValidateInput errorsRef={errorsRef} name="Confirm Password" value={form.confirmPassword} isRequired validate={checkPassword} />
-            </FormGroup>
+            <ControlledField
+                formKey="email"
+                label="Email"
+                errorsRef={errorsRef}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                validate={checkEmail}
+            />
+
+            <ControlledField
+                formKey="password"
+                label="Password"
+                errorsRef={errorsRef}
+                secureTextEntry
+                minLength={6}
+            />
+
+            <ControlledField
+                formKey="confirmPassword"
+                label="Confirm Password"
+                errorsRef={errorsRef}
+                secureTextEntry
+                validate={checkPassword}
+            />
 
             <ThemedButton type='success' onPress={handleSignup} disabled={loading}>
                 {loading ? "Creating Account..." : "Sign Up"}
             </ThemedButton>
+
+            <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+                <ThemedText style={styles.linkText}>Already have an account? Login</ThemedText>
+            </TouchableOpacity>
         </ThemedView>
     );
 }
 
+type SignupFormKey = keyof ReturnType<typeof useSignupStore.getState>['form'];
+
+interface ControlledFieldProps {
+    formKey: SignupFormKey;
+    label: string;
+    errorsRef: any;
+    validate?: (value: string) => string | undefined;
+    isRequired?: boolean;
+    minLength?: number;
+    secureTextEntry?: boolean;
+    autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+    keyboardType?: 'default' | 'email-address' | 'numeric';
+}
+
+const ControlledField = memo(({
+    formKey,
+    label,
+    errorsRef,
+    validate,
+    isRequired = true,
+    minLength,
+    ...inputProps
+}: ControlledFieldProps) => {
+
+    // SELECTOR: This is the magic part. 
+    // It only re-renders this specific field when its own key in Zustand changes.
+    const value = useSignupStore((state) => state.form[formKey]);
+    const setField = useSignupStore((state) => state.setField);
+
+    return (
+        <FormGroup>
+            <ThemedTextInput
+                placeholder={label}
+                value={value}
+                onChangeText={(val) => setField(formKey, val)}
+                {...inputProps}
+            />
+            <ValidateInput
+                errorsRef={errorsRef}
+                name={label}
+                value={value}
+                isRequired={isRequired}
+                minLength={minLength}
+                validate={validate}
+            />
+        </FormGroup>
+    );
+});
+
 const styles = StyleSheet.create({
-    scrollview: { flex: 1, justifyContent: 'center' },
-    container: { flexGrow: 1, justifyContent: 'center', padding: 20 },
+    container: { flex: 1, justifyContent: 'center', padding: 24 },
     title: { marginBottom: 30, textAlign: 'center' },
     linkText: { color: '#007AFF', marginTop: 20, textAlign: 'center' },
 });
