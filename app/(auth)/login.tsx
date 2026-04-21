@@ -1,4 +1,5 @@
 import FormGroup from '@/components/form-group';
+import KeyboardDismiss from '@/components/keyboard-dismiss';
 import PasswordInput from '@/components/password-input';
 import ThemedButton from '@/components/themed-button';
 import { ThemedText } from '@/components/themed-text';
@@ -9,7 +10,7 @@ import { showAlert } from '@/utils/alert';
 import startValidate from '@/utils/start-validation';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 
 export default function LoginScreen() {
@@ -20,7 +21,6 @@ export default function LoginScreen() {
     const router = useRouter();
 
     const handleLogin = useCallback(() => {
-        // Basic validation
         if (!email || !password) {
             startValidate(email, setEmail)
             startValidate(password, setPassword)
@@ -42,60 +42,49 @@ export default function LoginScreen() {
     }, [email, password]);
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={{ flex: 1 }}
-        >
-            <ScrollView
-                contentContainerStyle={styles.scrollview}
-                keyboardShouldPersistTaps="handled"
-            >
-                <TouchableWithoutFeedback onPress={Keyboard.dismiss} disabled={Platform.OS === 'web'}>
-                    <ThemedView style={styles.container}>
+        <KeyboardDismiss>
+            <ThemedView style={styles.container}>
 
-                        <ThemedText type='title' style={styles.title}>Welcome Back</ThemedText>
+                <ThemedText type='title' style={styles.title}>Welcome Back</ThemedText>
 
-                        <FormGroup>
-                            <ThemedTextInput
-                                placeholder="Email"
-                                value={email}
-                                onChangeText={setEmail}
-                                autoCapitalize="none"
-                                keyboardType="email-address"
-                            />
+                <FormGroup>
+                    <ThemedTextInput
+                        placeholder="Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        autoCapitalize="none"
+                        keyboardType="email-address"
+                    />
 
-                            <ValidateInput name="Email" value={email} isRequired />
-                        </FormGroup>
+                    <ValidateInput name="Email" value={email} isRequired />
+                </FormGroup>
 
-                        <FormGroup>
-                            <PasswordInput
-                                placeholder="Password"
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry
-                            />
+                <FormGroup>
+                    <PasswordInput
+                        placeholder="Password"
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                    />
 
-                            <ValidateInput name="Password" value={password} isRequired />
-                        </FormGroup>
+                    <ValidateInput name="Password" value={password} isRequired />
+                </FormGroup>
 
-                        {!!errorMsg && <FormGroup>
-                            <ThemedText type="error">{errorMsg}</ThemedText>
-                        </FormGroup>}
+                {!!errorMsg && <FormGroup>
+                    <ThemedText type="error">{errorMsg}</ThemedText>
+                </FormGroup>}
 
-                        <ThemedButton onPress={handleLogin}>Login</ThemedButton>
+                <ThemedButton onPress={handleLogin}>Login</ThemedButton>
 
-                        <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
-                            <ThemedText style={styles.linkText}>Don't have an account? Sign Up</ThemedText>
-                        </TouchableOpacity>
-                    </ThemedView>
-                </TouchableWithoutFeedback>
-            </ScrollView>
-        </KeyboardAvoidingView>
+                <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
+                    <ThemedText style={styles.linkText}>Don't have an account? Sign Up</ThemedText>
+                </TouchableOpacity>
+            </ThemedView>
+        </KeyboardDismiss>
     );
 }
 
 const styles = StyleSheet.create({
-    scrollview: { flex: 1, justifyContent: 'center' },
     container: { flex: 1, justifyContent: 'center', padding: 20 },
     title: { marginBottom: 30, textAlign: 'center' },
     button: { backgroundColor: '#007AFF', padding: 15, borderRadius: 8, alignItems: 'center' },

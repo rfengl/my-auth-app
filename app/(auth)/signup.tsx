@@ -5,6 +5,7 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 
 import FormGroup from '@/components/form-group';
+import KeyboardDismiss from '@/components/keyboard-dismiss';
 import ThemedButton from '@/components/themed-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedTextInput } from '@/components/themed-text-input';
@@ -44,7 +45,7 @@ export default function SignupScreen() {
 
     const checkPassword = useCallback(() => {
         const { form } = useSignupStore.getState();
-        if (form.password !== form.confirmPassword) {
+        if (form.password !== form.confirmPassword && form.confirmPassword) {
             return 'Passwords do not match with confirm password.';
         }
     }, []);
@@ -57,49 +58,51 @@ export default function SignupScreen() {
     }, []);
 
     return (
-        <ThemedView style={styles.container}>
-            <ThemedText type='title' style={styles.title}>Create Account</ThemedText>
+        <KeyboardDismiss>
+            <ThemedView style={styles.container}>
+                <ThemedText type='title' style={styles.title}>Create Account</ThemedText>
 
-            <ControlledField
-                formKey="name"
-                label="Full Name"
-                errorsRef={errorsRef}
-            />
+                <ControlledField
+                    formKey="name"
+                    label="Full Name"
+                    errorsRef={errorsRef}
+                />
 
-            <ControlledField
-                formKey="email"
-                label="Email"
-                errorsRef={errorsRef}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                validate={checkEmail}
-            />
+                <ControlledField
+                    formKey="email"
+                    label="Email"
+                    errorsRef={errorsRef}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    validate={checkEmail}
+                />
 
-            <ControlledField
-                formKey="password"
-                label="Password"
-                errorsRef={errorsRef}
-                secureTextEntry
-                minLength={6}
-                validate={checkPassword}
-            />
+                <ControlledField
+                    formKey="password"
+                    label="Password"
+                    errorsRef={errorsRef}
+                    secureTextEntry
+                    minLength={6}
+                    validate={checkPassword}
+                />
 
-            <ControlledField
-                formKey="confirmPassword"
-                label="Confirm Password"
-                errorsRef={errorsRef}
-                secureTextEntry
-                validate={checkPassword}
-            />
+                <ControlledField
+                    formKey="confirmPassword"
+                    label="Confirm Password"
+                    errorsRef={errorsRef}
+                    secureTextEntry
+                    validate={checkPassword}
+                />
 
-            <ThemedButton type='success' onPress={handleSignup} disabled={loading}>
-                {loading ? "Creating Account..." : "Sign Up"}
-            </ThemedButton>
+                <ThemedButton type='success' onPress={handleSignup} disabled={loading}>
+                    {loading ? "Creating Account..." : "Sign Up"}
+                </ThemedButton>
 
-            <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-                <ThemedText style={styles.linkText}>Already have an account? Login</ThemedText>
-            </TouchableOpacity>
-        </ThemedView>
+                <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+                    <ThemedText style={styles.linkText}>Already have an account? Login</ThemedText>
+                </TouchableOpacity>
+            </ThemedView>
+        </KeyboardDismiss>
     );
 }
 

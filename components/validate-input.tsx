@@ -23,12 +23,14 @@ export default function ValidateInput({ errorsRef, name, value, isRequired, minL
     let errorMsg: string | null | undefined = null
     if (isRequired && !value) {
         errorMsg = `${name} is mandatory to fill in.`
-    } else if (validate) {
-        errorMsg = validate(value)
     }
 
     if (minLength && !errorMsg && (value || '').length < minLength) {
         errorMsg = `${name} length less than ${minLength} characters..`
+    }
+
+    if (validate && !errorMsg) {
+        errorMsg = validate(value)
     }
 
     if (errorsRef) {
