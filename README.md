@@ -47,6 +47,8 @@ Utilizes AsyncStorage to act as a long-term persistence layer. The app "remember
 
 2. Advanced Form Handling
 
+- Atomic Performance Optimization: Leveraged Zustand selectors and React.memo on the "Signup page" to isolate re-renders at the input level. This ensures that typing in one field does not trigger a re-render of the entire form or parent screen, maintaining 60FPS performance even with dozens of inputs.
+
 - Keyboard Awareness: Implemented KeyboardAvoidingView and TouchableWithoutFeedback to ensure a seamless input experience on mobile devices without hiding input fields.
 
 - Validation Layer: Integrated a custom validation utility to provide real-time feedback to users during the login and signup process.
