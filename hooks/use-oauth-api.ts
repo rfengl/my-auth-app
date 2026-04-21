@@ -45,7 +45,7 @@ export function callSignIn(loginID: string, password: string) {
                 ? JSON.parse(existingUsersJson)
                 : [];
 
-            const user = usersList.find(u => u.email === loginID && u.password === password)
+            const user = usersList.find(u => (u.email || '').toLowerCase() === (loginID || '').toLowerCase() && u.password === password)
 
             if (user) {
                 const token = `mock_jwt_token_${Math.random()}`
