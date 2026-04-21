@@ -48,6 +48,8 @@ function RootLayoutNav() {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/login" options={{
+        headerBackVisible: false,
+        headerLeft: () => null,
         title: '',
         headerRight: () => (
           <TouchableOpacity onPress={handleSwitchTheme} style={{ marginRight: 15 }}>
